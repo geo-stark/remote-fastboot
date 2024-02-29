@@ -171,6 +171,7 @@ func main() {
 		var dev usbDevice
 		var err error
 		conn, _ := ln.Accept()
+		log.Printf("connected from: %v", ln.Addr().String())
 		if err = netReadHandshake(conn); err != nil {
 			log.Printf("tcp: %v", err)
 			continue
@@ -185,6 +186,7 @@ func main() {
 
 		netWriteHandshake(conn)
 
+		log.Printf("protocol version 1")
 		var response []byte = make([]byte, 256)
 		for {
 			data, err := netRead(conn)
@@ -192,6 +194,7 @@ func main() {
 				log.Printf("tcp: %v", err)
 				break
 			}
+			log.Printf("command, size: %v", len(data))
 			if err = usbWrite(dev, data); err != nil {
 				log.Printf("usb: %v", err)
 				break
@@ -266,7 +269,7 @@ func usbWrite(dev usbDevice, data []byte) error {
 
 	endpoint := dev.endpointOut
 	count := (len(data) + int(endpoint.MaxPacketSize) - 1) / int(endpoint.MaxPacketSize)
-	log.Printf("usb send: %v, %v %v\n", len(data), count, endpoint.MaxPacketSize)
+	log.Printf("usb sending: %v, %v %v\n", len(data), count, endpoint.MaxPacketSize)
 
 	offset := 0
 	for i := 0; i < count; i++ {
